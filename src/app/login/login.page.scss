@@ -1,0 +1,191 @@
+ion-content.login-content {
+  --background: #252261;
+  color-scheme: light !important; // Force light mode
+}
+
+/* Page Layout */
+.page-wrapper {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+/* Header Logos */
+.header {
+  display: flex;
+  gap: 13px;
+  margin-bottom: 18px;
+}
+
+/* White Circle Container */
+.logo-circle,
+.logo-circle1 {
+  width: 72px;
+  height: 72px;
+  background: #ffffff !important;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+/* Logo Sizes */
+.logo-circle img {
+  width: 75px;
+  height: 75px;
+  object-fit: contain;
+}
+
+.logo-circle1 img {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+}
+
+/* Department Text */
+.department {
+  color: #ffffff !important;
+  font-weight: 700;
+  margin-bottom: 28px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.department span {
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff !important;
+}
+
+/* Division text */
+.department .division {
+  display: block;
+  margin-top: 10px;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  opacity: 0.9;
+  color: #ffffff !important;
+}
+
+/* Login Card */
+.login-box {
+  background: #ffffff !important;
+  border-radius: 16px;
+  padding: 36px 28px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  color-scheme: light !important; // Force light mode for the card
+}
+
+.login-box h3 {
+  color: #252261 !important;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+/* Form */
+.form-group {
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #252261 !important;
+  margin-left: 20px;
+}
+
+/* Input Field – FULL ROUND FIX */
+.field {
+  --background: #9d9dbb !important;
+  --color: #ffffff !important;
+  --inner-border-width: 0;
+  border-radius: 16px;
+  padding: 6px 14px;
+  overflow: hidden;
+  color-scheme: light !important;
+}
+
+/* Ionic internal input */
+.field::part(native) {
+  border-radius: 16px;
+  background: #9d9dbb !important;
+}
+
+/* Input text */
+.field ion-input {
+  color: #ffffff !important;
+  --placeholder-color: #e5e5e5 !important;
+  --placeholder-opacity: 1 !important;
+  font-size: 15px;
+  
+  // Force input text color
+  input {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+}
+
+/* Eye icon */
+.eye {
+  color: #ffffff !important;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Button */
+ion-button {
+  --background: #252261 !important;
+  --background-activated: #1a1847 !important;
+  --color: #ffffff !important;
+  --border-radius: 8px;
+  height: 46px;
+  font-weight: 600;
+  margin-top: 10px;
+  
+  &[disabled] {
+    --background: #5a5a7a !important;
+    --color: #cccccc !important;
+  }
+}
+
+/* Additional dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  ion-content.login-content {
+    --background: #252261 !important;
+  }
+  
+  .login-box {
+    background: #ffffff !important;
+  }
+  
+  .logo-circle,
+  .logo-circle1 {
+    background: #ffffff !important;
+  }
+  
+  .field {
+    --background: #9d9dbb !important;
+  }
+  
+  .department,
+  .department span,
+  .department .division {
+    color: #ffffff !important;
+  }
+  
+  .login-box h3,
+  .form-group label {
+    color: #252261 !important;
+  }
+}

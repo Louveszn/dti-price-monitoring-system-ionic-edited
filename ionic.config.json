@@ -1,0 +1,7 @@
+{
+  "name": "dti price monitoring",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

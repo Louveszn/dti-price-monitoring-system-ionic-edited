@@ -1,0 +1,277 @@
+<div *ngIf="showWarning" class="warning-banner">
+  {{ warningMessage }}
+</div>
+
+<ion-content [fullscreen]="true">
+  <!-- Upload View -->
+  <div class="page-container" *ngIf="!isGenerated">
+    <header class="page-header">
+      <h1>CPD PRICE TRACKER</h1>
+      <h2>Nueva Vizcaya</h2>
+    </header>
+
+    <div class="upload-section">
+      <div class="upload-card" (click)="fileInput.click()">
+        <h3 *ngIf="!selectedFile">Upload a file</h3>
+        <h3 *ngIf="selectedFile" class="file-selected-name">
+          {{ selectedFile.name }}
+        </h3>
+
+        <div class="upload-icon-container" *ngIf="!selectedFile">
+          <ion-icon name="cloud-upload-outline"></ion-icon>
+        </div>
+
+        <input
+          type="file"
+          #fileInput
+          hidden
+          accept=".xlsx,.xls"
+          (change)="onFileSelected($event)"
+        />
+
+        <ion-button class="generate-btn" (click)="generateReport($event)">
+          Generate
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results View -->
+  <div *ngIf="isGenerated" class="results-wrapper">
+    <header class="results-header">
+      <h1>CPD PRICE TRACKER</h1>
+      <h2>Nueva Vizcaya</h2>
+      <p *ngIf="reportTitle" class="top-report-date">{{ reportTitle }}</p>
+    </header>
+
+    <!-- Toolbar -->
+    <div class="toolbar-wrapper">
+      <div class="white-toolbar">
+        <div class="btn-group">
+          <button class="outline-action" (click)="resetToUpload()">
+            Upload New File
+          </button>
+          <button class="outline-action" (click)="toggleComparativeAnalysis()">
+            {{ isComparativeMode ? 'Show Raw Data' : 'Comparative Analysis' }}
+          </button>
+          <button class="outline-action" (click)="generateSummaryReport()">
+            {{ showSummary ? 'Hide Summary' : 'Summary Report' }}
+          </button>
+        </div>
+
+        <div class="search-group">
+          <button class="outline-action export-btn" (click)="exportSummaryReport()" [disabled]="!showSummary">
+            <ion-icon name="download-outline"></ion-icon>
+            Export
+          </button>
+          <div class="search-input-wrapper">
+            <ion-icon name="search-outline"></ion-icon>
+            <input 
+              type="text" 
+              placeholder="Search" 
+              [(ngModel)]="searchQuery"
+              (input)="onSearchChange()"
+            />
+            <ion-icon 
+              *ngIf="searchQuery" 
+              name="close-circle" 
+              class="clear-icon"
+              (click)="clearSearch()">
+            </ion-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sheet Selector Dropdown -->
+    <div class="sheet-selector" *ngIf="sheetNames.length > 1 && !showSummary">
+      <label for="sheetDropdown">Select Sheet:</label>
+      <select 
+        id="sheetDropdown" 
+        [(ngModel)]="selectedSheetIndex" 
+        (change)="onSheetChange()"
+      >
+        <option *ngFor="let sheet of sheetNames; let i = index" [value]="i">
+          {{ sheet }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Summary Report Section -->
+    <div class="summary-view-container" *ngIf="showSummary">
+      <div class="summary-content">
+
+        <!-- 1 Month Summary Card -->
+        <div class="summary-card">
+          <h3 class="summary-title">1 Month Comparison Summary</h3>
+
+          <!-- A. Increase -->
+          <div class="summary-section">
+            <span class="summary-label"><strong>A. Increase</strong></span>
+            <span class="summary-value"></span>
+          </div>
+
+          <div class="summary-section">
+            <span class="summary-label">Total Increase:</span>
+            <span class="summary-value">{{ summary.month1.increaseCount }}</span>
+          </div>
+
+          <div class="summary-section">
+            <span class="summary-label">Highest Increase:</span>
+            <span class="summary-value">
+              <div *ngFor="let item of summary.month1.highestIncrease" class="multi-item">
+                {{ item }}
+              </div>
+            </span>
+          </div>
+
+          <div class="summary-section">
+            <span class="summary-label">Lowest Increase:</span>
+            <span class="summary-value">
+              <div *ngFor="let item of summary.month1.lowestIncrease" class="multi-item">
+                {{ item }}
+              </div>
+            </span>
+          </div>
+
+          <!-- B. Decrease -->
+          <div class="bar"><br></div>
+          <div class="summary-section">
+            <span class="summary-label"><strong>B. Decrease</strong></span>
+            <span class="summary-value"></span>
+          </div>
+
+          <div class="summary-section">
+            <span class="summary-label">Total Decrease:</span>
+            <span class="summary-value">{{ summary.month1.decreaseCount }}</span>
+          </div>
+
+          <div class="summary-section">
+            <span class="summary-label">Highest Decrease:</span>
+            <span class="summary-value">
+              <div *ngFor="let item of summary.month1.highestDecrease" class="multi-item">
+                {{ item }}
+              </div>
+            </span>
+          </div>
+
+          <div class="summary-section">
+            <span class="summary-label">Lowest Decrease:</span>
+            <span class="summary-value">
+              <div *ngFor="let item of summary.month1.lowestDecrease" class="multi-item">
+                {{ item }}
+              </div>
+            </span>
+          </div>
+
+          <!-- Total Number of Products -->
+          <div class="bar"><br></div>
+          <div class="summary-section total-products">
+            <span class="summary-label"><strong>Total Number of Products:</strong></span>
+            <span class="summary-value"><strong>{{ summary.month1.totalProducts }}</strong></span>
+          </div>
+        </div>
+
+        <!-- 3 Months Summary Card -->
+        <div class="summary-card">
+          <h3 class="summary-title">3 Months Comparison Summary</h3>
+
+          <!-- A. Increase -->
+          <div class="summary-section">
+            <span class="summary-label"><strong>A. Increase</strong></span>
+            <span class="summary-value"></span>
+          </div>
+
+          <div class="summary-section">
+            <span class="summary-label">Total Increase:</span>
+            <span class="summary-value">{{ summary.month3.increaseCount }}</span>
+          </div>
+
+          <div class="summary-section">
+            <span class="summary-label">Highest Increase:</span>
+            <span class="summary-value">
+              <div *ngFor="let item of summary.month3.highestIncrease" class="multi-item">
+                {{ item }}
+              </div>
+            </span>
+          </div>
+
+          <div class="summary-section">
+            <span class="summary-label">Lowest Increase:</span>
+            <span class="summary-value">
+              <div *ngFor="let item of summary.month3.lowestIncrease" class="multi-item">
+                {{ item }}
+              </div>
+            </span>
+          </div>
+
+          <!-- B. Decrease -->
+          <div class="bar"><br></div>
+          <div class="summary-section">
+            <span class="summary-label"><strong>B. Decrease</strong></span>
+            <span class="summary-value"></span>
+          </div>
+
+          <div class="summary-section">
+            <span class="summary-label">Total Decrease:</span>
+            <span class="summary-value">{{ summary.month3.decreaseCount }}</span>
+          </div>
+
+          <div class="summary-section">
+            <span class="summary-label">Highest Decrease:</span>
+            <span class="summary-value">
+              <div *ngFor="let item of summary.month3.highestDecrease" class="multi-item">
+                {{ item }}
+              </div>
+            </span>
+          </div>
+
+          <div class="summary-section">
+            <span class="summary-label">Lowest Decrease:</span>
+            <span class="summary-value">
+              <div *ngFor="let item of summary.month3.lowestDecrease" class="multi-item">
+                {{ item }}
+              </div>
+            </span>
+          </div>
+
+          <!-- Total Number of Products -->
+          <div class="bar"><br></div>
+          <div class="summary-section total-products">
+            <span class="summary-label"><strong>Total Number of Products:</strong></span>
+            <span class="summary-value"><strong>{{ summary.month3.totalProducts }}</strong></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper" *ngIf="!showSummary">
+      <div class="table-container">
+        <table *ngIf="tableData.length > 0">
+          <thead>
+            <tr>
+              <th *ngFor="let header of tableHeaders">
+                {{ header }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of tableData; let rowIndex = index">
+              <td
+                *ngFor="let cell of row; let colIndex = index"
+                [ngClass]="getComparisonClass(rowIndex, colIndex)"
+              >
+                {{ cell }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="tableData.length === 0 && searchQuery" class="no-results">
+          <p>No results found for "{{ searchQuery }}"</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

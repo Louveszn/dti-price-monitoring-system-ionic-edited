@@ -1,0 +1,9 @@
+<ion-app>
+  <ng-container *ngIf="!isLogin">
+    <ion-router-outlet></ion-router-outlet>
+  </ng-container>
+
+  <ng-container *ngIf="isLogin">
+    <ion-router-outlet></ion-router-outlet>
+  </ng-container>
+</ion-app>

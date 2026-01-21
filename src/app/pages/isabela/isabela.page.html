@@ -1,0 +1,402 @@
+<div *ngIf="showWarning" class="warning-banner">
+  {{ warningMessage }}
+</div>
+
+<ion-content [fullscreen]="true">
+  <div class="page-container" *ngIf="!isGenerated">
+    <header class="page-header">
+      <h1>CPD PRICE TRACKER</h1>
+      <h2>Isabela</h2>
+    </header>
+
+    <div class="upload-section">
+      <div class="upload-card" (click)="fileInput.click()">
+        <h3 *ngIf="!selectedFile">Upload a file</h3>
+        <h3 *ngIf="selectedFile" class="file-selected-name">
+          {{ selectedFile.name }}
+        </h3>
+
+        <div class="upload-icon-container" *ngIf="!selectedFile">
+          <ion-icon name="cloud-upload-outline"></ion-icon>
+        </div>
+
+        <input
+          type="file"
+          #fileInput
+          hidden
+          accept=".xlsx,.xls"
+          (change)="onFileSelected($event)"
+        />
+
+        <ion-button class="generate-btn" (click)="generateReport($event)">
+          Generate
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isGenerated" class="results-wrapper">
+    <header class="results-header">
+      <h1>CPD PRICE TRACKER</h1>
+      <h2>Isabela</h2>
+      <p *ngIf="reportTitle" class="top-report-date">{{ reportTitle }}</p>
+    </header>
+
+    <!-- ⬇️ UPDATED TOOLBAR SECTION -->
+    <div class="toolbar-wrapper">
+      <div class="white-toolbar">
+        <div class="btn-group">
+          <button class="outline-action" (click)="goBack()">
+            Upload new file
+          </button>
+          <button
+            class="outline-action"
+            (click)="toggleAnalysis()"
+            [class.active-btn]="viewMode === 'analysis'">
+            {{ viewMode === 'analysis' ? 'Show Raw Data' : 'Comparative Analysis' }}
+          </button>
+
+          <button
+            class="outline-action"
+            (click)="showSummary()"
+            [class.active-btn]="viewMode === 'summary'">
+            Summary Report
+          </button>
+        </div>
+
+        <!-- ⬇️ UPDATED SEARCH GROUP WITH EXPORT BUTTON -->
+        <div class="search-group">
+          <button class="outline-action export-btn" (click)="exportSummaryReport()" [disabled]="viewMode !== 'summary'">
+            <ion-icon name="download-outline"></ion-icon>
+            Export
+          </button>
+          <div class="search-input-wrapper">
+            <ion-icon name="search-outline"></ion-icon>
+            <input
+              type="text"
+              placeholder="Search"
+              [(ngModel)]="searchText"
+            />
+            <ion-icon 
+              *ngIf="searchText" 
+              name="close-circle" 
+              class="clear-icon"
+              (click)="searchText = ''">
+            </ion-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="table-container">
+
+        <table *ngIf="viewMode === 'raw' && tableData.length > 0" class="raw-data-table">
+          <thead>
+            <tr>
+              <th *ngFor="let header of tableHeaders; let i = index" [class.header-product]="i === 0" [class.header-size]="i === 1">
+                {{ header }}
+              </th>
+            </tr>
+            <tr class="date-row" *ngIf="dateRowData.length > 0">
+              <td *ngFor="let dateCell of dateRowData; let i = index" [class.date-cell-first]="i === 0">
+                {{ dateCell || '' }}
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of filteredTableData" [class.category-row]="isCategoryRow(row)">
+              <td *ngFor="let cell of row; let i = index" 
+                  [class.product-name]="i === 0" 
+                  [class.size-column]="i === 1"
+                  [class.price-column]="i > 1">
+                <ng-container *ngIf="i > 1 && typeof cell === 'number'; else displayAsIs">
+                  {{ cell | number:'1.2-2' }}
+                </ng-container>
+                <ng-template #displayAsIs>{{ cell || '' }}</ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <table class="analysis-table" *ngIf="viewMode === 'analysis'">
+          <thead>
+            <tr>
+              <th>ITEM</th>
+              <th>CURRENT WEEK</th>
+              <th>VS WEEK AGO</th>
+              <th>VS MONTH AGO</th>
+              <th>VS 3 MONTHS AGO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of filteredAnalysisData">
+              <td>{{ item.name }}</td>
+              <td>{{ item.current | number:'1.2-2' }}</td>
+
+              <td [ngClass]="item.vsWeek.status">
+                <ng-container *ngIf="item.weekAgoPrice !== null; else noWeekData">
+                  {{ item.weekAgoPrice | number:'1.2-2' }}
+                  <span class="status-indicator">
+                    {{ item.vsWeek.status === 'increase' ? '↑' : (item.vsWeek.status === 'decrease' ? '↓' : '') }}
+                    {{ item.vsWeek.val | number:'1.2-2' }}
+                  </span>
+                </ng-container>
+                <ng-template #noWeekData>-</ng-template>
+              </td>
+
+              <td [ngClass]="item.vsMonth.status">
+                <ng-container *ngIf="item.monthAgoPrice !== null; else noMonthData">
+                  {{ item.monthAgoPrice | number:'1.2-2' }}
+                  <span class="status-indicator">
+                    {{ item.vsMonth.status === 'increase' ? '↑' : (item.vsMonth.status === 'decrease' ? '↓' : '') }}
+                    {{ item.vsMonth.val | number:'1.2-2' }}
+                  </span>
+                </ng-container>
+                <ng-template #noMonthData>-</ng-template>
+              </td>
+
+              <td [ngClass]="item.vs3Month.status">
+                <ng-container *ngIf="item.threeMonthPrice !== null; else no3MonthData">
+                  {{ item.threeMonthPrice | number:'1.2-2' }}
+                  <span class="status-indicator">
+                    {{ item.vs3Month.status === 'increase' ? '↑' : (item.vs3Month.status === 'decrease' ? '↓' : '') }}
+                    {{ item.vs3Month.val | number:'1.2-2' }}
+                  </span>
+                </ng-container>
+                <ng-template #no3MonthData>-</ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Summary Report Section -->
+        <div class="summary-view-container" *ngIf="viewMode === 'summary'">
+          <div class="summary-content" *ngIf="summaryData">
+
+            <!-- 1 Week Summary Card -->
+            <div class="summary-card">
+              <h3 class="summary-title">1 Week Comparison Summary</h3>
+
+              <!-- A. Increase -->
+              <div class="summary-section">
+                <span class="summary-label"><strong>A. Increase</strong></span>
+                <span class="summary-value"></span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Total Increase:</span>
+                <span class="summary-value">{{ summaryData.week.totalIncrease }}</span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Highest Increase:</span>
+                <span class="summary-value">
+                  <div *ngFor="let item of summaryData.week.highestIncrease" class="multi-item">
+                    ₱{{ item.value | number:'1.2-2' }} - {{ item.item }}<span *ngIf="item.unit"> ({{ item.unit }})</span>
+                  </div>
+                  <div *ngIf="summaryData.week.highestIncrease.length === 0" class="multi-item">N/A</div>
+                </span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Lowest Increase:</span>
+                <span class="summary-value">
+                  <div *ngFor="let item of summaryData.week.lowestIncrease" class="multi-item">
+                    ₱{{ item.value | number:'1.2-2' }} - {{ item.item }}<span *ngIf="item.unit"> ({{ item.unit }})</span>
+                  </div>
+                  <div *ngIf="summaryData.week.lowestIncrease.length === 0" class="multi-item">N/A</div>
+                </span>
+              </div>
+
+              <!-- B. Decrease -->
+              <div class="bar"><br></div>
+              <div class="summary-section">
+                <span class="summary-label"><strong>B. Decrease</strong></span>
+                <span class="summary-value"></span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Total Decrease:</span>
+                <span class="summary-value">{{ summaryData.week.totalDecrease }}</span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Highest Decrease:</span>
+                <span class="summary-value">
+                  <div *ngFor="let item of summaryData.week.highestDecrease" class="multi-item">
+                    ₱{{ item.value | number:'1.2-2' }} - {{ item.item }}<span *ngIf="item.unit"> ({{ item.unit }})</span>
+                  </div>
+                  <div *ngIf="summaryData.week.highestDecrease.length === 0" class="multi-item">N/A</div>
+                </span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Lowest Decrease:</span>
+                <span class="summary-value">
+                  <div *ngFor="let item of summaryData.week.lowestDecrease" class="multi-item">
+                    ₱{{ item.value | number:'1.2-2' }} - {{ item.item }}<span *ngIf="item.unit"> ({{ item.unit }})</span>
+                  </div>
+                  <div *ngIf="summaryData.week.lowestDecrease.length === 0" class="multi-item">N/A</div>
+                </span>
+              </div>
+              <div class="bar"><br></div>
+              <div class="summary-section total-products">
+                <span class="summary-label"><strong>Total Number of Products:</strong></span>
+                <span class="summary-value"><strong>{{ summary.week.totalProducts }}</strong></span>
+              </div>
+            </div>
+
+            <!-- 1 Month Summary Card -->
+            <div class="summary-card">
+              <h3 class="summary-title">1 Month Comparison Summary</h3>
+
+              <!-- A. Increase -->
+              <div class="summary-section">
+                <span class="summary-label"><strong>A. Increase</strong></span>
+                <span class="summary-value"></span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Total Increase:</span>
+                <span class="summary-value">{{ summaryData.month.totalIncrease }}</span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Highest Increase:</span>
+                <span class="summary-value">
+                  <div *ngFor="let item of summaryData.month.highestIncrease" class="multi-item">
+                    ₱{{ item.value | number:'1.2-2' }} - {{ item.item }}<span *ngIf="item.unit"> ({{ item.unit }})</span>
+                  </div>
+                  <div *ngIf="summaryData.month.highestIncrease.length === 0" class="multi-item">N/A</div>
+                </span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Lowest Increase:</span>
+                <span class="summary-value">
+                  <div *ngFor="let item of summaryData.month.lowestIncrease" class="multi-item">
+                    ₱{{ item.value | number:'1.2-2' }} - {{ item.item }}<span *ngIf="item.unit"> ({{ item.unit }})</span>
+                  </div>
+                  <div *ngIf="summaryData.month.lowestIncrease.length === 0" class="multi-item">N/A</div>
+                </span>
+              </div>
+
+              <!-- B. Decrease -->
+              <div class="bar"><br></div>
+              <div class="summary-section">
+                <span class="summary-label"><strong>B. Decrease</strong></span>
+                <span class="summary-value"></span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Total Decrease:</span>
+                <span class="summary-value">{{ summaryData.month.totalDecrease }}</span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Highest Decrease:</span>
+                <span class="summary-value">
+                  <div *ngFor="let item of summaryData.month.highestDecrease" class="multi-item">
+                    ₱{{ item.value | number:'1.2-2' }} - {{ item.item }}<span *ngIf="item.unit"> ({{ item.unit }})</span>
+                  </div>
+                  <div *ngIf="summaryData.month.highestDecrease.length === 0" class="multi-item">N/A</div>
+                </span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Lowest Decrease:</span>
+                <span class="summary-value">
+                  <div *ngFor="let item of summaryData.month.lowestDecrease" class="multi-item">
+                    ₱{{ item.value | number:'1.2-2' }} - {{ item.item }}<span *ngIf="item.unit"> ({{ item.unit }})</span>
+                  </div>
+                  <div *ngIf="summaryData.month.lowestDecrease.length === 0" class="multi-item">N/A</div>
+                </span>
+              </div>
+              <div class="bar"><br></div>
+              <div class="summary-section total-products">
+                <span class="summary-label"><strong>Total Number of Products:</strong></span>
+                <span class="summary-value"><strong>{{ summary.month.totalProducts }}</strong></span>
+              </div>
+            </div>
+
+            <!-- 3 Months Summary Card -->
+            <div class="summary-card">
+              <h3 class="summary-title">3 Months Comparison Summary</h3>
+
+              <!-- A. Increase -->
+              <div class="summary-section">
+                <span class="summary-label"><strong>A. Increase</strong></span>
+                <span class="summary-value"></span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Total Increase:</span>
+                <span class="summary-value">{{ summaryData.threeMonth.totalIncrease }}</span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Highest Increase:</span>
+                <span class="summary-value">
+                  <div *ngFor="let item of summaryData.threeMonth.highestIncrease" class="multi-item">
+                    ₱{{ item.value | number:'1.2-2' }} - {{ item.item }}<span *ngIf="item.unit"> ({{ item.unit }})</span>
+                  </div>
+                  <div *ngIf="summaryData.threeMonth.highestIncrease.length === 0" class="multi-item">N/A</div>
+                </span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Lowest Increase:</span>
+                <span class="summary-value">
+                  <div *ngFor="let item of summaryData.threeMonth.lowestIncrease" class="multi-item">
+                    ₱{{ item.value | number:'1.2-2' }} - {{ item.item }}<span *ngIf="item.unit"> ({{ item.unit }})</span>
+                  </div>
+                  <div *ngIf="summaryData.threeMonth.lowestIncrease.length === 0" class="multi-item">N/A</div>
+                </span>
+              </div>
+
+              <!-- B. Decrease -->
+              <div class="bar"><br></div>
+              <div class="summary-section">
+                <span class="summary-label"><strong>B. Decrease</strong></span>
+                <span class="summary-value"></span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Total Decrease:</span>
+                <span class="summary-value">{{ summaryData.threeMonth.totalDecrease }}</span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Highest Decrease:</span>
+                <span class="summary-value">
+                  <div *ngFor="let item of summaryData.threeMonth.highestDecrease" class="multi-item">
+                    ₱{{ item.value | number:'1.2-2' }} - {{ item.item }}<span *ngIf="item.unit"> ({{ item.unit }})</span>
+                  </div>
+                  <div *ngIf="summaryData.threeMonth.highestDecrease.length === 0" class="multi-item">N/A</div>
+                </span>
+              </div>
+
+              <div class="summary-section">
+                <span class="summary-label">Lowest Decrease:</span>
+                <span class="summary-value">
+                  <div *ngFor="let item of summaryData.threeMonth.lowestDecrease" class="multi-item">
+                    ₱{{ item.value | number:'1.2-2' }} - {{ item.item }}<span *ngIf="item.unit"> ({{ item.unit }})</span>
+                  </div>
+                  <div *ngIf="summaryData.threeMonth.lowestDecrease.length === 0" class="multi-item">N/A</div>
+                </span>
+              </div>
+              <div class="bar"><br></div>
+              <div class="summary-section total-products">
+                <span class="summary-label"><strong>Total Number of Products:</strong></span>
+                <span class="summary-value"><strong>{{ summary.threeMonth.totalProducts }}</strong></span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,61 @@
+<ion-content class="login-content" [fullscreen]="true">
+  <div class="page-wrapper">
+
+    <!-- Header Logos -->
+    <div class="header">
+      <div class="logo-circle">
+        <img src="assets/DTI logo.png" alt="DTI Logo" />
+      </div>
+      <div class="logo-circle1">
+        <img src="assets/bagong pilipinas logo.png" alt="BP Logo" />
+      </div>
+    </div>
+
+    <!-- Department Text -->
+    <h2 class="department">
+      DEPARTMENT OF TRADE AND INDUSTRY<br />
+      <span>REGION II</span><br />
+      <small class="division">Consumer Protection Division</small>
+    </h2>
+
+    <!-- Login Card -->
+    <div class="login-box">
+      <h3>ADMIN LOG IN</h3>
+
+      <!-- Username -->
+      <div class="form-group">
+        <label>Username</label>
+        <ion-item lines="none" class="field">
+          <ion-input
+            [(ngModel)]="username"
+            placeholder="Enter your username">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label>Password</label>
+        <ion-item lines="none" class="field">
+          <ion-input
+            [(ngModel)]="password"
+            [type]="showPassword ? 'text' : 'password'"
+            placeholder="Enter your password">
+          </ion-input>
+
+          <ion-icon
+            slot="end"
+            class="eye"
+            [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+            (click)="togglePassword()">
+          </ion-icon>
+        </ion-item>
+      </div>
+
+      <ion-button expand="block" (click)="login()" [disabled]="loading">
+        {{ loading ? 'LOGGING IN...' : 'LOG IN' }}
+      </ion-button>
+    </div>
+
+  </div>
+</ion-content>

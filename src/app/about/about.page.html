@@ -1,0 +1,40 @@
+<div *ngIf="showWarning" class="warning-banner">
+  {{ warningMessage }}
+</div>
+
+<ion-content class="about-page" fullscreen>
+  <div class="page-inner">
+    <h2 class="page-title">About</h2>
+
+    <div class="large-card animated-card">
+      <div class="large-card-inner">
+        <h3 class="large-heading">CPD Price Tracker is an intuitive analytical tool designed to simplify market monitoring by automatically comparing 
+          current and historical product pricing from your uploaded files. Our system features advanced comparison logic 
+          that identifies price fluctuations and generates a comprehensive summary dashboard, highlighting the total number of increases and decreases 
+          along with the products experiencing the most significant price shifts. To streamline your workflow, the platform allows you to instantly
+           export these insights into a professional Word report for easy sharing and record-keeping.
+        </h3>
+      </div>
+    </div>
+
+    <div class="team-row">
+      <div class="team-card" *ngFor="let member of team" (click)="onMemberClick(member)" role="button" tabindex="0">
+        <!-- Image/Icon container added here -->
+        <div class="member-icon" *ngIf="member.name === 'Katelyn B. Bangayan'">
+          <img src="assets/kate.jpg" [alt]="member.name" />
+        </div>
+        
+        <!-- Sherilou's image -->
+        <div class="member-icon" *ngIf="member.name === 'Sherilou S. Tan'">
+          <img src="assets/lou.jpg" [alt]="member.name" />
+        </div>
+        
+        <div class="member-name">{{ member.name }}</div>
+        <div class="member-course">{{ member.course }}</div>
+        <div class="member-school">{{ member.school }}</div>
+        <div class="member-ojt">{{ member.ojt }}</div>
+        <div class="member-div">{{ member.div }}</div>
+      </div>
+    </div>
+  </div>
+</ion-content>
